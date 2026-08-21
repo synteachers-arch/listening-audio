@@ -1,0 +1,7 @@
+# 원본(고음질) 음원은 git으로 관리하지 않음
+source/
+
+# OS/편집기 잡파일
+Thumbs.db
+.DS_Store
+.vscode/

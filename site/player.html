@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>듣기 음원 재생</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f5f6f8;
+    --card-bg: #ffffff;
+    --text: #1b1e24;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --border: #e5e7eb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a;
+      --card-bg: #1e2127;
+      --text: #f0f1f3;
+      --muted: #9aa1ac;
+      --accent: #5b8cff;
+      --border: #2c3038;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Malgun Gothic", sans-serif;
+    padding: 24px;
+  }
+  .card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+  }
+  .label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0 0 20px;
+  }
+  audio {
+    width: 100%;
+    margin-top: 8px;
+  }
+  .error {
+    color: #dc2626;
+    font-size: 14px;
+    margin-top: 12px;
+  }
+</style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="label">불러오는 중...</div>
+  </div>
+
+<script>
+async function main() {
+  const card = document.getElementById('card');
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id');
+
+  if (!id) {
+    card.innerHTML = '<div class="error">잘못된 링크입니다 (id 없음)</div>';
+    return;
+  }
+
+  let manifest;
+  try {
+    const res = await fetch('manifest.json', { cache: 'no-store' });
+    manifest = await res.json();
+  } catch (e) {
+    card.innerHTML = '<div class="error">음원 목록을 불러오지 못했습니다</div>';
+    return;
+  }
+
+  const entry = manifest[id];
+  if (!entry) {
+    card.innerHTML = '<div class="error">존재하지 않는 링크입니다</div>';
+    return;
+  }
+
+  const audioSrc = '../dist/' + entry.path.split('/').map(encodeURIComponent).join('/');
+
+  card.innerHTML = `
+    <div class="label">${entry.semester} · ${entry.class}</div>
+    <h1>${entry.unit}</h1>
+    <audio controls preload="metadata" src="${audioSrc}"></audio>
+  `;
+}
+
+main();
+</script>
+</body>
+</html>
