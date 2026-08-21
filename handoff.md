@@ -1,7 +1,8 @@
 # 듣기 음원 관리·배포 시스템 — 프로젝트 인계 문서
 
-> 작성일: 2026-08-21
-> 상태: 설계 논의 완료, 구현 착수 전
+> 작성일: 2026-08-21 (최종 갱신: 2026-08-21)
+> 상태: 초기 구현 완료 — GitHub 저장소/Pages 배포됨, 실제 음원 반영 및
+> Collaborator 초대 남음
 
 ## 1. 목표
 
@@ -66,7 +67,8 @@ Google Drive 같은 클라우드 동기화 드라이브 안에 두지 않는다.
 **대신:**
 - 각 노트북에 `git clone`으로 저장소를 로컬 디스크(Drive 동기화 폴더 바깥)에
   받아두고, 작업 시작 전 `git pull` → 작업 후 `git push` 로 동기화
-- GitHub 저장소는 비공개(private)로 설정
+- GitHub 저장소는 **공개(public)**로 설정됨 (GitHub Pages 무료 플랜 제약 때문 —
+  8-2 참고. 원래는 비공개로 설계했었음)
 - 원본 고음질 파일(`source/` 폴더, `.gitignore` 대상)은 Git으로 관리할
   필요가 없으므로 **Google Drive for Windows 가상 드라이브에 두고 여러
   노트북에서 접근하는 것은 적절함** — 단, 같은 원본 파일을 두 사람이
@@ -105,32 +107,60 @@ Google Drive 같은 클라우드 동기화 드라이브 안에 두지 않는다.
 
 ## 7. 다음 할 일 (TODO)
 
-- [ ] GitHub 비공개 저장소 생성 및 위 폴더 구조로 초기화
-- [ ] `.gitignore`에 `source/` 추가
-- [ ] `scripts/process_audio.py` 작성 (ffmpeg 연동: 음량 정규화 + mp3 변환 +
-  파일명 규칙 적용 + 랜덤 id 자동 부여)
-- [ ] `site/player.html` 템플릿 작성 (재생 버튼, 반응형, 브랜딩)
-- [ ] `site/manifest.json` 구조 확정 및 첫 샘플 데이터 작성 (id는 랜덤 문자열)
-- [ ] GitHub Pages 활성화 및 배포 테스트 (스마트폰 실기기 확인)
+- [x] GitHub 저장소 생성(공개 전환, 8-2 참고) 및 위 폴더 구조로 초기화
+- [x] `.gitignore`에 `source/` 추가
+- [x] `scripts/process_audio.py` 작성 (ffmpeg 연동: 음량 정규화 + mp3 변환 +
+  파일명 규칙 적용 + 랜덤 id 자동 부여) — 실제 원본 파일로 아직 미검증
+- [x] `site/player.html` 템플릿 작성 (재생 버튼, 반응형, 브랜딩)
+- [x] `site/manifest.json` 구조 확정 (현재 빈 `{}` — 첫 샘플 데이터는
+  실제 원본 음원 처리 후 생성)
+- [x] GitHub Pages 활성화 (https://synteachers-arch.github.io/listening-audio/)
+  — 실제 음원으로 스마트폰 배포 테스트는 아직 필요
 - [ ] Google Sheets 카탈로그 시트 생성
 - [ ] 다른 관리자 2명을 GitHub Collaborator로 초대 (8-1 참고)
 - [ ] 노트북 2~3대에 각각 clone 및 초기 설정 (4번 체크리스트 참고)
 - [ ] (선택) Apps Script로 시트 ↔ manifest.json 자동 연동
 - [ ] (추후) 재생 횟수 제한 / 재생 여부 추적 기능 추가 (필요성 확인되면)
 
-## 8. 결정 사항 (2026-08-21 확정)
+## 8. 결정 사항 (2026-08-21 확정, 8-2에서 일부 수정됨)
 
 - **URL 접근 제어**: 예측 불가능한 랜덤 ID 방식 채택.
   `player.html?id=unit12` 대신 `player.html?id=x7k2p9` 처럼 `manifest.json`의
-  key를 무작위 문자열로 발급. 로그인/비밀번호 없이도 링크를 모르면 접근이
-  사실상 불가능한 수준의 최소 보호. ID 생성은 `process_audio.py`에서 파일
-  처리 시 자동 부여(예: `secrets.token_urlsafe(6)`).
+  key를 무작위 문자열로 발급. ID 생성은 `process_audio.py`에서 파일 처리 시
+  자동 부여(예: `secrets.token_urlsafe(6)`).
+  ⚠️ 단, 8-2에서 저장소를 공개로 전환하면서 이 보호의 실효성이 크게
+  낮아졌음 — 저장소 파일 목록 자체가 공개되므로 랜덤 ID는 "링크를 몰라도
+  URL 목록에서 우연히 찾기 어렵게" 하는 정도의 의미만 남음. 자세한 내용은
+  8-2 참고.
 - **재생 횟수 제한**: 지금은 넣지 않음. 1차는 자유 재생으로 배포 시스템부터
   안정화하고, 필요성이 확인되면 Apps Script 연동 단계에서 추가.
 - **아카이브 정책**: 별도 저장소로 옮기지 않고, 저장소 안에 학기별 폴더
   (`dist/2026-1학기/`, `dist/2026-2학기/` ...)를 계속 유지. GitHub Pages
   무료 저장 한도(~1GB) 내에서는 이 방식이 가장 단순함. 한도에 가까워지면
   그때 별도 아카이브 저장소 분리 재검토.
+
+## 8-2. GitHub Pages 제약으로 인한 저장소 공개 전환 (2026-08-21)
+
+구현 중 발견: **GitHub Pages는 무료(Free) 플랜에서 비공개 저장소를
+지원하지 않음** (Pro 이상 필요). 애초 설계는 "비공개 저장소 + GitHub
+Pages"였으나 이 조합이 무료 플랜에서 불가능함이 뒤늦게 확인됨.
+
+세 가지 대안(Cloudflare Pages로 전환 / GitHub Pro 구독 / 저장소 공개 전환)
+중 **저장소를 공개로 전환**하는 방식을 선택함
+(`gh repo edit --visibility public`).
+
+**트레이드오프 인지 필요:**
+- 저장소가 공개이므로 `github.com/synteachers-arch/listening-audio`에서
+  누구나 `dist/` 폴더의 반/단원명이 담긴 파일 목록과 mp3 파일 자체를 직접
+  열람·다운로드할 수 있음. 랜덤 ID(8번 항목)는 "링크 없이 우연히 접근"만
+  막을 뿐, 저장소를 직접 뒤지는 접근은 막지 못함
+- **저작권 주의**: 출판사 교재에 딸린 상업용 듣기 음원을 그대로 업로드하면
+  공개 배포로 인한 저작권 문제가 발생할 수 있음. 자체 녹음/자체 제작
+  음원이거나 배포 권한이 확인된 음원만 이 저장소에 올릴 것
+- 추후 이 트레이드오프가 부담되면 Cloudflare Pages로 전환(저장소는
+  비공개 유지 가능) 또는 GitHub Pro 구독으로 재검토 가능
+
+**GitHub Pages 배포 URL**: https://synteachers-arch.github.io/listening-audio/
 
 ## 8-1. 다중 관리자(2~3인) 협업 방식
 
@@ -141,8 +171,9 @@ Google Drive 같은 클라우드 동기화 드라이브 안에 두지 않는다.
   수락.
 - 각 관리자는 본인 GitHub 계정으로 커밋/푸시 (계정 공유 금지 — 누가 무엇을
   바꿨는지 git log로 추적 가능해야 함).
-- 저장소는 비공개(private) 유지. Collaborator는 본인이 초대된 비공개
-  저장소에 정상적으로 push 가능.
+- 저장소가 공개(public)로 전환됐지만(8-2 참고), Collaborator(Write 권한)
+  초대는 동일하게 필요 — 초대받지 않은 사람은 코드를 볼 수는 있어도
+  push는 할 수 없음.
 - 인원이나 저장소가 늘어나면 그때 Organization 전환 고려(지금은 불필요).
 
 ## 9. 참고 자료
