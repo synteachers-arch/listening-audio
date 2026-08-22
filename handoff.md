@@ -1,8 +1,15 @@
 # 듣기 음원 관리·배포 시스템 — 프로젝트 인계 문서
 
-> 작성일: 2026-08-21 (최종 갱신: 2026-08-21)
-> 상태: 초기 구현 완료 — GitHub 저장소/Pages 배포됨, 실제 음원 반영 및
-> Collaborator 초대 남음
+> 작성일: 2026-08-21 (최종 갱신: 2026-08-22)
+> 상태: **운영 가능한 상태로 배포 완료.** 실제 음원 12개가 GitHub Pages에
+> 올라가 있고, 스마트폰 재생 테스트까지 확인됨. 이어서 작업할 사람은
+> 10번 "인계 시점 요약" 섹션부터 읽을 것.
+
+## 0. 인계받은 분에게
+
+이 문서는 새로 합류하는 관리자가 맥락을 따라잡기 위한 것입니다. 전체를 다
+읽을 필요는 없고, **10번 섹션(인계 시점 요약)** 먼저 보고 필요한 부분만
+위로 올라와서 참고하세요.
 
 ## 1. 목표
 
@@ -32,14 +39,14 @@
   배포용 압축 음원(mp3 96~128kbps 모노)만 쓰면 상당 기간 여유
 - 규모가 커지면 Cloudflare R2 등 오브젝트 스토리지로 이전 고려 (지금은 불필요)
 
-## 3. 폴더/파일 구조 (제안)
+## 3. 폴더/파일 구조 (실제 구현됨)
 
 ```
 listening-audio/
-├── source/                      # 원본(고음질) — git에는 올리지 않음(.gitignore)
-│   └── 2026-2학기/고1-B반/unit12_raw.wav
+├── source/                      # 원본 — git에는 올리지 않음(.gitignore)
+│   └── 유형01/01_대표 기출.mp3   # (예시: 실제 배치된 구조)
 ├── dist/                        # 배포용(압축본) — 실제 GitHub Pages에서 서빙
-│   └── 2026-2학기/고1-B반/unit12.mp3
+│   └── 유형01/01_대표 기출.mp3
 ├── scripts/
 │   └── process_audio.py         # 원본 → 배포용 자동 변환 스크립트
 ├── site/
@@ -49,9 +56,20 @@ listening-audio/
 └── README.md
 ```
 
-### 파일 명명 규칙
-`{학기}/{반}/{단원}.mp3`
-예: `2026-2학기/고1-B반/unit12.mp3`
+### 폴더 구조 규칙 (당초 설계에서 변경됨)
+당초 `{학기}/{반}/{단원}.mp3` 고정 3단계 구조로 설계했으나, 실제 음원이
+학기/반이 아니라 **유형(문제 유형) 기준**으로 정리되어 있어서
+`process_audio.py`를 임의 깊이의 폴더 구조를 그대로 미러링하는 방식으로
+일반화함(2026-08-22, 8-3 참고).
+
+- `source/` 아래에 원하는 대로 폴더를 만들면 됨 (깊이 제한 없음)
+- `dist/`에는 `source/`와 동일한 폴더 구조가 그대로 mp3로 생성됨
+- `manifest.json`의 각 항목은 `path`(dist 기준 상대경로), `group`(파일의
+  부모 폴더 경로), `unit`(파일명, 확장자 제외)로 구성됨
+- 파일명이 `_raw`로 끝나면 변환 시 제거됨 (필수 아님)
+
+현재 실제 배치 예시: `유형01`~`유형04` 폴더 각각에 `01_대표 기출.mp3`,
+`02_Mini Exercise.mp3`, `03_Listen&Check.mp3` 3개 파일.
 
 ## 4. 다중 기기·다중 관리자 동기화 전략 (본인 + 학원 관리자 2대, 총 2~3인)
 
@@ -92,32 +110,44 @@ Google Drive 같은 클라우드 동기화 드라이브 안에 두지 않는다.
 - [ ] Google Drive for Desktop 설치 (원본 음원 폴더 접근용, 스트리밍 모드)
 - [ ] Python + ffmpeg 설치 확인 (`process_audio.py` 실행용)
 
-## 5. 재생 페이지 동작 방식 (설계 의도)
+## 5. 재생 페이지 동작 방식 (구현됨 + 다음 논의 항목)
 
 - 단원마다 별도 HTML을 만들지 않고, `player.html?id=x7k2p9` 형태로
   하나의 템플릿을 재사용 (id는 예측 불가능한 랜덤 문자열 — 8번 결정 사항 참고)
-- `manifest.json`에서 id → 실제 mp3 경로 매핑을 조회
+- `manifest.json`에서 id → `{path, group, unit}` 매핑을 조회해 오디오
+  플레이어를 렌더링. 실제 스마트폰 재생 테스트 완료 (2026-08-22)
 - 추후 옵션: 재생 횟수 제한(실제 시험처럼 2회 등), 구간 이동(스크러빙)
   제한, 재생 여부를 Apps Script로 기록해 숙제 이행 추적
+- **다음 논의 중인 항목(미착수)**: 지금은 mp3 1개당 링크 1개라서 학생에게
+  "유형01" 숙제를 낼 때 3개 링크를 따로 보내야 함. `site/index.html`을
+  추가해서 manifest.json 전체를 유형별 목록으로 보여주는 카탈로그
+  홈페이지를 만드는 방향으로 논의 중 — `player.html`(개별 재생)은 그대로
+  유지하고 `index.html`은 진입점 역할만 하는 구조로 예상.
 
-## 6. Google Sheets 카탈로그 컬럼 (초안)
+## 6. Google Sheets 카탈로그 컬럼 (초안 — 아직 미착수)
 
-| 파일 경로 | 학기 | 반 | 단원명 | 배포일 | 마감일 | 링크 상태 |
-|---|---|---|---|---|---|---|
+당초 컬럼안은 학기/반 기준이었으나, 실제 콘텐츠가 유형 기준으로 바뀌었으므로
+착수 시 아래 컬럼안을 다시 검토할 것:
+
+| 파일 경로 | 유형 | 항목(대표기출/Mini Exercise/Listen&Check) | 배포일 | 마감일 | 링크 상태 |
+|---|---|---|---|---|---|
 
 ## 7. 다음 할 일 (TODO)
 
 - [x] GitHub 저장소 생성(공개 전환, 8-2 참고) 및 위 폴더 구조로 초기화
 - [x] `.gitignore`에 `source/` 추가
 - [x] `scripts/process_audio.py` 작성 (ffmpeg 연동: 음량 정규화 + mp3 변환 +
-  파일명 규칙 적용 + 랜덤 id 자동 부여) — 실제 원본 파일로 아직 미검증
+  임의 깊이 폴더 구조 미러링 + 랜덤 id 자동 부여) — 실제 음원 12개로 검증 완료
 - [x] `site/player.html` 템플릿 작성 (재생 버튼, 반응형, 브랜딩)
-- [x] `site/manifest.json` 구조 확정 (현재 빈 `{}` — 첫 샘플 데이터는
-  실제 원본 음원 처리 후 생성)
+- [x] `site/manifest.json` 구조 확정 및 실제 데이터 반영 (12개 항목)
 - [x] GitHub Pages 활성화 (https://synteachers-arch.github.io/listening-audio/)
-  — 실제 음원으로 스마트폰 배포 테스트는 아직 필요
-- [ ] Google Sheets 카탈로그 시트 생성
-- [ ] 다른 관리자 2명을 GitHub Collaborator로 초대 (8-1 참고)
+  — 실제 음원 스마트폰 재생 테스트 완료 (2026-08-22)
+- [x] 관리자 1명(`classikyu-collab`)을 GitHub Collaborator로 초대함
+  (2026-08-22) — **초대 수락 대기 중**
+- [ ] 관리자 2번째 인원 아직 미정 — 정해지면 동일하게 Collaborator 초대
+- [ ] `site/index.html` 카탈로그(목록) 페이지 추가 — 5번 항목 참고, 설계만
+  논의됐고 아직 구현 전
+- [ ] Google Sheets 카탈로그 시트 생성 (6번 컬럼안 참고)
 - [ ] 노트북 2~3대에 각각 clone 및 초기 설정 (4번 체크리스트 참고)
 - [ ] (선택) Apps Script로 시트 ↔ manifest.json 자동 연동
 - [ ] (추후) 재생 횟수 제한 / 재생 여부 추적 기능 추가 (필요성 확인되면)
@@ -176,8 +206,60 @@ Pages"였으나 이 조합이 무료 플랜에서 불가능함이 뒤늦게 확�
   push는 할 수 없음.
 - 인원이나 저장소가 늘어나면 그때 Organization 전환 고려(지금은 불필요).
 
+## 8-3. 첫 실제 음원 배치 및 검증 (2026-08-22)
+
+- 실제 음원 12개(유형01~04 × 대표기출/Mini Exercise/Listen&Check)를
+  `source/`에 배치 → `process_audio.py` 실행 → `dist/`에 변환 → push
+- 이 음원은 **자체 제작/학원 소유 음원**임을 확인함 (출판사 상업 음원
+  아님) → 8-2의 저작권 우려는 이 배치에는 해당 없음. 단, 앞으로 다른
+  배치를 올릴 때마다 출처를 다시 확인할 것
+- ffmpeg 변환 스크립트에서 Windows 콘솔 인코딩(cp949) 문제로 stderr 읽기
+  중 크래시가 났던 버그를 수정함 (`encoding="utf-8", errors="replace"`
+  지정)
+- GitHub Pages CDN이 Range 요청(`Accept-Ranges: bytes`)을 정상 지원하는
+  것을 확인함 (한국 리전 엣지에서 서빙됨: `x-github-edge-region:
+  koreacentral`)
+- 실기기(스마트폰)에서 `player.html?id=Xpz7wlJ7` 링크로 재생 테스트 완료.
+  첫 시도에서 5분 가까이 재생이 멈춰있는 현상이 있었으나 재시도 시 정상
+  재생됨 — 파일 자체와 서버 설정(Range 지원, 디코딩)은 모두 정상으로
+  확인됐으므로 일시적 네트워크/CDN 캐시 워밍업 문제로 추정. **재발하면
+  진짜 재생 안 되는 상황인지, 첫 로딩만 느린 것인지 구분해서 다시 확인
+  필요**
+
 ## 9. 참고 자료
 
 - GitHub Pages 제한: https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits
 - Google Drive 동기화가 Git 저장소를 손상시키는 사례 (Google 공식 커뮤니티):
   https://support.google.com/drive/thread/353731823/google-drive-sync-corrupting-git-repositories-via-desktop-ini-injection?hl=en
+- 저장소: https://github.com/synteachers-arch/listening-audio
+- 배포 사이트: https://synteachers-arch.github.io/listening-audio/
+- 재생 테스트용 예시 링크: https://synteachers-arch.github.io/listening-audio/site/player.html?id=Xpz7wlJ7
+
+## 10. 인계 시점 요약 (2026-08-22)
+
+새로 합류하는 관리자는 여기부터 시작하면 됩니다.
+
+**지금 바로 되는 것:**
+- 저장소 clone: `git clone https://github.com/synteachers-arch/listening-audio.git`
+  (Collaborator 초대를 수락한 이후에 push 권한이 생김 — clone 자체는
+  공개 저장소라 누구나 가능)
+- `python scripts/process_audio.py` 실행하면 `source/` 아래 새 폴더에
+  넣은 mp3/wav를 자동으로 `dist/`에 변환 + `site/manifest.json`에 등록
+  (Python, ffmpeg가 로컬에 설치되어 있어야 함 — 4번 체크리스트 참고)
+- 아무 mp3나 하나 등록한 뒤 `git add`, `git commit`, `git push`하면
+  몇 초~1분 내 GitHub Pages에 반영되고, `player.html?id=<발급된id>` 링크로
+  바로 재생 확인 가능
+
+**아직 안 된 것 (우선순위 순):**
+1. 관리자 2번째 인원 확정 및 Collaborator 초대 (7번 TODO)
+2. `site/index.html` 카탈로그 페이지 — 지금은 링크를 mp3 파일 단위로만
+   보낼 수 있어서, 유형별로 묶어서 보여주는 목록 페이지가 필요하다는
+   논의까지만 되고 구현 전 (5번 항목)
+3. Google Sheets 카탈로그 시트 (6번)
+4. 노트북 초기 설정 체크리스트를 각 관리자가 직접 완료 (4번)
+
+**꼭 알아야 할 트레이드오프:**
+- 저장소가 **공개(public)**입니다 — GitHub Pages 무료 플랜이 비공개
+  저장소를 지원하지 않아서 어쩔 수 없이 전환했습니다(8-2). 즉 링크의
+  랜덤 ID는 "우연히 못 찾게" 하는 정도이지 진짜 접근 제어가 아닙니다.
+  **출판사 상업 음원 등 저작권 있는 자료는 절대 올리지 말 것.**
