@@ -99,7 +99,7 @@ async function main() {
   const audioSrc = '../dist/' + entry.path.split('/').map(encodeURIComponent).join('/');
 
   card.innerHTML = `
-    <div class="label">${entry.semester} · ${entry.class}</div>
+    <div class="label">${entry.group}</div>
     <h1>${entry.unit}</h1>
     <audio controls preload="metadata" src="${audioSrc}"></audio>
   `;

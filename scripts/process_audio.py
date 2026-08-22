@@ -5,8 +5,11 @@
     python scripts/process_audio.py
 
 전제:
-    - source/{학기}/{반}/{단원}_raw.{wav,mp3,m4a,...} 형식으로 원본 파일을 배치
-      예: source/2026-2학기/고1-B반/unit12_raw.wav
+    - source/ 아래에 원하는 폴더 구조로 원본 파일을 자유롭게 배치
+      (폴더 깊이 제한 없음 — 예: source/유형01/01_대표 기출.mp3,
+      source/2026-2학기/고1-B반/unit12_raw.wav 등 무엇이든 가능)
+    - dist/에는 source/의 폴더 구조가 그대로 mp3로 미러링됨
+    - 파일명이 "_raw"로 끝나면 변환 시 제거됨 (필수는 아님)
     - 시스템에 ffmpeg가 설치되어 PATH에서 실행 가능해야 함
     - 같은 원본을 다시 처리해도 manifest.json에 이미 등록된 파일의 id는
       바뀌지 않는다 (학생에게 배포한 링크가 깨지지 않도록)
@@ -16,7 +19,6 @@ import json
 import re
 import secrets
 import subprocess
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -29,7 +31,6 @@ RAW_SUFFIX_RE = re.compile(r"_raw$", re.IGNORECASE)
 
 
 def find_source_files():
-    """source/{학기}/{반}/{단원}_raw.ext 구조의 파일을 모두 찾는다."""
     if not SOURCE_DIR.exists():
         print(f"source/ 폴더가 없습니다: {SOURCE_DIR}")
         return []
@@ -37,19 +38,14 @@ def find_source_files():
     files = []
     for path in SOURCE_DIR.rglob("*"):
         if path.is_file() and path.suffix.lower() in AUDIO_EXTENSIONS:
-            rel = path.relative_to(SOURCE_DIR)
-            if len(rel.parts) != 3:
-                print(f"건너뜀 (경로 형식이 {{학기}}/{{반}}/{{파일}}이 아님): {rel}")
-                continue
             files.append(path)
     return files
 
 
 def to_dist_path(source_path: Path) -> Path:
     rel = source_path.relative_to(SOURCE_DIR)
-    semester, class_name, filename = rel.parts
     unit = RAW_SUFFIX_RE.sub("", source_path.stem)
-    return DIST_DIR / semester / class_name / f"{unit}.mp3"
+    return DIST_DIR / rel.parent / f"{unit}.mp3"
 
 
 def convert_to_mp3(source_path: Path, dist_path: Path):
@@ -62,7 +58,9 @@ def convert_to_mp3(source_path: Path, dist_path: Path):
         "-b:a", "128k",
         str(dist_path),
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(
+        cmd, capture_output=True, text=True, encoding="utf-8", errors="replace"
+    )
     if result.returncode != 0:
         print(f"ffmpeg 변환 실패: {source_path}")
         print(result.stderr[-2000:])
@@ -108,8 +106,9 @@ def main():
         if not convert_to_mp3(source_path, dist_path):
             continue
 
-        semester, class_name, unit_filename = Path(dist_rel).parts
-        unit = Path(unit_filename).stem
+        dist_rel_path = Path(dist_rel)
+        group = dist_rel_path.parent.as_posix() if dist_rel_path.parent != Path(".") else ""
+        unit = dist_rel_path.stem
 
         if dist_rel in path_to_id:
             id_ = path_to_id[dist_rel]
@@ -119,8 +118,7 @@ def main():
 
         manifest[id_] = {
             "path": dist_rel,
-            "semester": semester,
-            "class": class_name,
+            "group": group,
             "unit": unit,
         }
 

@@ -1,1 +1,62 @@
-{}
+{
+  "Xpz7wlJ7": {
+    "path": "유형01/01_대표 기출.mp3",
+    "group": "유형01",
+    "unit": "01_대표 기출"
+  },
+  "3YnIlI5J": {
+    "path": "유형01/02_Mini Exercise.mp3",
+    "group": "유형01",
+    "unit": "02_Mini Exercise"
+  },
+  "aVOElMtE": {
+    "path": "유형01/03_Listen&Check.mp3",
+    "group": "유형01",
+    "unit": "03_Listen&Check"
+  },
+  "R6yxx9tm": {
+    "path": "유형02/01_대표 기출.mp3",
+    "group": "유형02",
+    "unit": "01_대표 기출"
+  },
+  "q1lhfZsB": {
+    "path": "유형02/02_Mini Exercise.mp3",
+    "group": "유형02",
+    "unit": "02_Mini Exercise"
+  },
+  "JG7yVEN2": {
+    "path": "유형02/03_Listen&Check.mp3",
+    "group": "유형02",
+    "unit": "03_Listen&Check"
+  },
+  "fccunEIP": {
+    "path": "유형03/01_대표 기출.mp3",
+    "group": "유형03",
+    "unit": "01_대표 기출"
+  },
+  "xsg2OJS5": {
+    "path": "유형03/02_Mini Exercise.mp3",
+    "group": "유형03",
+    "unit": "02_Mini Exercise"
+  },
+  "piCff2Tu": {
+    "path": "유형03/03_Listen&Check.mp3",
+    "group": "유형03",
+    "unit": "03_Listen&Check"
+  },
+  "1JqyQnz7": {
+    "path": "유형04/01_대표 기출.mp3",
+    "group": "유형04",
+    "unit": "01_대표 기출"
+  },
+  "wWQl-W7q": {
+    "path": "유형04/02_Mini Exercise.mp3",
+    "group": "유형04",
+    "unit": "02_Mini Exercise"
+  },
+  "sGnd9kS0": {
+    "path": "유형04/03_Listen&Check.mp3",
+    "group": "유형04",
+    "unit": "03_Listen&Check"
+  }
+}
