@@ -110,6 +110,24 @@ Google Drive 같은 클라우드 동기화 드라이브 안에 두지 않는다.
 - [ ] Google Drive for Desktop 설치 (원본 음원 폴더 접근용, 스트리밍 모드)
 - [ ] Python + ffmpeg 설치 확인 (`process_audio.py` 실행용)
 
+**macOS 관리자용 참고** — Windows(winget) 대신 Homebrew 사용:
+```bash
+# Homebrew가 없다면 먼저 설치
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+brew install gh ffmpeg python git
+
+git config --global user.name "본인 GitHub 이름"
+git config --global user.email "본인 GitHub 가입 이메일"
+
+gh auth login          # 웹 브라우저 로그인 플로우
+gh auth setup-git      # git push/pull에 gh 인증을 연결
+```
+- macOS는 Python 명령이 `python`이 아니라 `python3`인 경우가 많음 →
+  `python3 scripts/process_audio.py`로 실행
+- clone 위치는 Windows와 동일하게 **Google Drive 동기화 폴더 바깥**
+  (예: `~/dev/listening-audio`)이어야 함 (4번 상단 핵심 원칙 참고)
+
 ## 5. 재생 페이지 동작 방식 (구현됨 + 다음 논의 항목)
 
 - 단원마다 별도 HTML을 만들지 않고, `player.html?id=x7k2p9` 형태로
